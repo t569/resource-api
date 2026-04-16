@@ -19,7 +19,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8080",           # Local Quartz
-        "https://t569.github.io"           # Live Quartz
+        "https://t569.github.io/blog"           # Live Quartz
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -28,7 +28,7 @@ app.add_middleware(
 
 # --- Initialize External Clients ---
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-index = pc.Index("digital-garden-resources") # Ensure this matches your Pinecone index name
+index = pc.Index("resource-api-garden") # Ensure this matches your Pinecone index name
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 EMBEDDING_MODEL = "text-embedding-3-small"
