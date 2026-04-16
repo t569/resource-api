@@ -31,7 +31,7 @@ app.add_middleware(
 # Define the name of the header the frontend must send
 API_KEY_NAME = "X-Garden-Key"
 # Read your custom invented password from the environment
-SECRET_KEY = os.environ.get("GARDEN_API_KEY") 
+SECRET_KEY = os.environ.get("RESOURCE_API_KEY") 
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
 
 async def verify_api_key(api_key: str = Security(api_key_header)):
