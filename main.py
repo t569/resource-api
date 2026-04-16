@@ -41,7 +41,7 @@ async def verify_api_key(api_key: str = Security(api_key_header)):
 
 # --- Initialize External Clients ---
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-index = pc.Index("digital-garden-resources") 
+index = pc.Index("resource-api-garden") 
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 EMBEDDING_MODEL = "text-embedding-3-small"
