@@ -110,6 +110,16 @@ def generate_smart_queries(search_term: str, retrieved_context: str) -> List[str
 
 # --- Endpoints ---
 
+# Home URL
+@app.get("/")
+def read_root():
+    return {
+        "message": "Welcome to the Digital Garden RAG API",
+        "status": "Online",
+        "docs": "/docs"
+    }
+
+
 @app.post("/resources/inject", status_code=201, dependencies=[Depends(verify_api_key)])
 def inject_resource(resource: ResourceSubmission):
     """Embeds the resource using Llama-Embed and pushes it to Pinecone."""
