@@ -168,3 +168,13 @@ def search_pipeline(q: str = Query(..., description="User search query"), top_k:
         results=formatted_results,
         ai_suggested_queries=smart_queries
     )
+
+@app.delete("/resources/{resource_id}", status_code=204, dependencies=[Depends(verify_api_key)])
+def delete_resource(resource_id: str):
+    """Deletes a resource from the vector index by its ID."""
+    try:
+        # Pinecone accepts a list of IDs to delete
+        index.delete(ids=[resource_id])
+        return 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete from Pinecone: {str(e)}")
