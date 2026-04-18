@@ -5,3 +5,4 @@ openai
 pinecone
 python-dotenv
 PyGithub
+groq

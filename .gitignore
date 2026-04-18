@@ -2,3 +2,4 @@ venv/
 .env
 vercel.json
 __pycache__/
+.vercel
