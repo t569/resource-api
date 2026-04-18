@@ -24,8 +24,14 @@ app = FastAPI(
 # --- Middleware & Security ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Update this to your specific frontend/blog domain in production
-    allow_credentials=True,
+    # Explicitly whitelist your local frontend and your live production blog
+    allow_origins=[
+        "http://localhost:4321",        # Local Quartz dev server
+        "http://127.0.0.1:4321",        # Alternate local Quartz address
+        "http://localhost:8080",        # Alternate Quartz port
+        "https://t569.github.io/blog"  # REPLACE WITH YOUR ACTUAL LIVE QUARTZ URL
+    ],
+    allow_credentials=True, # Now perfectly safe to leave as True!
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -80,6 +86,9 @@ def get_embedding(text: str, is_query: bool = False) -> List[float]:
 
 def generate_smart_queries(search_term: str, retrieved_context: str) -> List[str]:
     """Passes the retrieved DB context to an LLM to generate tailored follow-up queries."""
+    
+    # PROMPT FIX: Instruct the model to return a JSON Object containing the array, 
+    # ensuring it satisfies the response_format={"type": "json_object"} requirement.
     prompt = f"""
     The user searched for: "{search_term}".
     Based on our database, we found these relevant resources:
@@ -87,57 +96,31 @@ def generate_smart_queries(search_term: str, retrieved_context: str) -> List[str
     
     Based on what they searched and what we actually have in our database, generate exactly 3 highly specific, 
     advanced search queries they could use next to explore deeper into these specific niches. 
-    Return ONLY a raw JSON array of 3 strings. No markdown formatting, no explanations.
+    
+    Return a JSON object with a single key "queries" that contains the array of 3 strings. No formatting.
     """
     
     try:
         chat_completion = groq_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama3-8b-8192", # Fast, free model
+            model="llama3-8b-8192", 
             temperature=0.3,
             response_format={"type": "json_object"}
         )
         response_text = chat_completion.choices[0].message.content
-        # Ensure we parse out the array safely
         parsed = json.loads(response_text)
-        if isinstance(parsed, dict):
-            # Groq sometimes wraps arrays in a dict key if prompted for a json_object
+        
+        # Safely extract the array from the object
+        if isinstance(parsed, dict) and "queries" in parsed:
+            return parsed["queries"]
+        elif isinstance(parsed, dict):
             return next(iter(parsed.values()))
+            
         return parsed
     except Exception as e:
         print(f"LLM Generation failed: {e}")
-        return ["Advanced " + search_term + " architecture", search_term + " edge cases"]
-
-# --- Endpoints ---
-
-# Home URL
-@app.get("/")
-def read_root():
-    return {
-        "message": "Welcome to the Digital Garden RAG API",
-        "status": "Online",
-        "docs": "/docs"
-    }
-
-
-@app.post("/resources/inject", status_code=201, dependencies=[Depends(verify_api_key)])
-def inject_resource(resource: ResourceSubmission):
-    """Embeds the resource using Llama-Embed and pushes it to Pinecone."""
-    resource_id = str(uuid.uuid4())
-    text_to_embed = f"Title: {resource.title}. Description: {resource.description}. Tags: {', '.join(resource.tags)}."
-    
-    vector = get_embedding(text_to_embed, is_query=False)
-    
-    metadata = {
-        "title": resource.title,
-        "url": str(resource.url),
-        "description": resource.description or "",
-        "category": resource.category,
-        "tags": resource.tags
-    }
-    index.upsert(vectors=[(resource_id, vector, metadata)])
-    
-    return {"message": "Resource successfully injected.", "id": resource_id}
+        # LLM FAILURE FALLBACK
+        return [f"Advanced {search_term} architecture", f"{search_term} edge cases"]
 
 @app.get("/search", response_model=SearchResponse)
 def search_pipeline(q: str = Query(..., description="User search query"), top_k: int = Query(5)):
