@@ -151,6 +151,8 @@ def read_root():
         "docs": "/docs"
     }
 
+# TODO: we might need to find a way to prevent duplicate resource injections (e.g., same URL) - maybe a quick metadata-only search before allowing an injection to proceed? For now, we just let it be and rely on the user not to be spammy.
+# in essence for use to save state and not burn through our tokens
 @app.post("/resources/inject", status_code=201, dependencies=[Depends(verify_api_key)])
 def inject_resource(resource: ResourceSubmission):
     resource_id = str(uuid.uuid4())
