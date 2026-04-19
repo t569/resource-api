@@ -27,8 +27,8 @@ app.add_middleware(
         "http://localhost:8080",
         "http://127.0.0.1:8080",
         "http://localhost:3000",
-        "https://t569.github.io/blog"
-        "https://resource-api-eight.vercel.app" # Your actual frontend domains go here
+        "https://t569.github.io"
+        # "https://resource-api-eight.vercel.app" # Your actual frontend domains go here
     ],
     allow_credentials=True,
     allow_methods=["*"],
