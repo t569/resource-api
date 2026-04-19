@@ -228,6 +228,7 @@ def get_graph_cluster():
             "id": resource_id,
             "name": meta["title"],
             "url": meta["url"],
+            "description": meta.get("description", ""),
             "group": "resource"
         })
 
